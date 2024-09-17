@@ -2,10 +2,10 @@ from __init__ import CONN,CURSOR
 
 class Concert():
     all={}
-    def __init__(self,date,band,venue):
+    def __init__(self,date,bandd,venuee):
         self.date=date
-        self.band=band
-        self.venue=venue
+        self.bandd=bandd
+        self.venuee=venuee
     
     @property
     def date(self):
@@ -19,26 +19,26 @@ class Concert():
             raise ValueError("Date is a non empty string")
     
     @property
-    def band(self):
-        return self._band
+    def bandd(self):
+        return self._bandd
     
-    @band.setter
-    def band(self,band):
+    @bandd.setter
+    def bandd(self,band):
         from band import Band
         if isinstance(band,Band):
-            self._band=band
+            self._bandd=band
         else:
             raise ValueError("Band must be an instance of class Band")
     
     @property
-    def venue(self):
-        return self._venue
+    def venuee(self):
+        return self._venuee
     
-    @venue.setter
-    def venue(self,venue):
+    @venuee.setter
+    def venuee(self,venue):
         from venue import Venue
         if isinstance(venue,Venue):
-            self._venue=venue
+            self._venuee=venue
         else:
             raise ValueError("Venue must be an instance of class Venue")
     
@@ -68,11 +68,11 @@ class Concert():
             INSERT INTO concerts(date,band,venue)
             VALUES(?,?,?)
         """
-        CURSOR.execute(sql,(self.date,self.band.name,self.venue.city))
+        CURSOR.execute(sql,(self.date,self.bandd.name,self.venuee.title))
         CONN.commit()
         self.id=CURSOR.lastrowid
         Concert.all[self.id]=self
-        
+    @classmethod   
     def create(cls,date,band,venue):
         concert=cls(date,band,venue)
         concert.save()
@@ -84,7 +84,7 @@ class Concert():
             SET date=?,band=?,venue=?
             WHERE id=?
         """
-        CURSOR.execute(sql,(self.date,self.band.name,self.venue.title,self.id))
+        CURSOR.execute(sql,(self.date,self.bandd.name,self.venuee.title,self.id))
         CONN.commit()
     
     
@@ -99,13 +99,26 @@ class Concert():
     
     @classmethod
     def instance_from_db(cls,row):
+        from band import Band
+        from venue import Venue
+        
+        band=Band.find_by_name(row[2])
+        
+        sql="""SELECT * FROM venues WHERE title=?"""
+        venue_row=CURSOR.execute(sql,(row[3],)).fetchone()
+        
+        if venue_row:
+            venue=Venue.instance_from_db(venue_row)
+        else:
+            venue=None
+        
         concert=cls.all.get(row[0])
         if concert:
             concert.date=row[1]
-            concert.band=row[2]
-            concert.venue=row[3]
+            concert.band=band
+            concert.venue=venue
         else:
-            concert=cls(row[1],row[2],row[3])
+            concert=cls(row[1],band,venue)
             concert.id=row[0]
             cls.all[concert.id]=concert
         return concert
@@ -129,11 +142,11 @@ class Concert():
     
     
     def band(self):
-        return self.band
+        return self.bandd
     
     
     def venue(self):
-        return self.venue
+        return self.venuee
     
     def hometown_show(self):
         sql="""
@@ -141,13 +154,13 @@ class Concert():
             FROM concerts
             INNER JOIN bands
             ON concerts.venue =bands.hometown
-            WHERE concert.band=?
+            WHERE concerts.band=?
         """
-        row=CURSOR.execute(sql,(self.band.name)).fetchone()
+        row=CURSOR.execute(sql,(self.bandd.name,)).fetchone()
         return True if row else False
     
     def introduction(self):
-        return f"Hello {self.venue.city}!!!!! We are {self.band.name} and we're from {self.band.hometown}"
+        return f"Hello {self.venuee.city}!!!!! We are {self.bandd.name} and we're from {self.bandd.hometown}"
     
     
     

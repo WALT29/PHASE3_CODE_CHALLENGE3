@@ -138,7 +138,7 @@ class Band():
             SELECT * FROM concerts WHERE band=?
         """
         rows=CURSOR.execute(sql,(self.name,)).fetchall()
-        return [Concert.instance_from_db(row).venue() for row in rows]
+        return [Concert.instance_from_db(row).venue for row in rows]
     
     def play_in_venue(self,venue, date):
         from venue import Venue
@@ -173,6 +173,7 @@ class Band():
             intros.append(intro)
         return intros
     
+    @classmethod
     def most_performances(cls):
         sql = """
             SELECT band, COUNT(*) as performance_count

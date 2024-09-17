@@ -93,6 +93,8 @@ class Venue():
             venue=cls(row[1],row[2])
             venue.id=row[0]
             cls.all[venue.id]=venue
+        
+        return venue
     
     @classmethod
     def get_all(cls):
@@ -113,10 +115,10 @@ class Venue():
     def bands(self):
         from concert import Concert
         sql="""
-            SELECT * FROM concert WHERE venue=?
+            SELECT * FROM concerts WHERE venue=?
         """
-        rows=CURSOR.execute(sql,(self.title,)).fetchall
-        return[Concert.instance_from_db(row).band() for row in rows]
+        rows=CURSOR.execute(sql,(self.title,)).fetchall()
+        return[Concert.instance_from_db(row) for row in rows]
     
     def concert_on(self,date):
         from concert import Concert
